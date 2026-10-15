@@ -1,0 +1,20 @@
+// mdview 实时预览插件默认设置（各项含义见包内 README.md）
+{
+    // mdview 可执行文件路径；留空自动探测（.md 关联 → 注册表 InstallDir → 常见目录 → PATH）
+    "mdview_path": "",
+
+    // 推送节流间隔（毫秒）：连续输入期间每该间隔出一帧
+    "debounce_ms": 300,
+
+    // 实时推送总开关
+    "enabled": true,
+
+    // 光标/点击/选区位置双向同步总开关
+    "sync_cursor": true,
+
+    // mdview 下载通道：auto = OS 界面语言中文 → 国内版，其余 → 国际版；可强制 cn / intl
+    "channel": "auto",
+
+    // 排查用：往 <live 目录>/plugin-debug.log 写详细日志
+    "debug_log": false
+}

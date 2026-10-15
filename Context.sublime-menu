@@ -1,0 +1,6 @@
+[
+    {
+        "caption": "Preview in mdview",
+        "command": "mdview_preview"
+    }
+]
