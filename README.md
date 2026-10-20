@@ -17,6 +17,16 @@ reloads. Cursor, click and selection are synced both ways.
 > [mdview.cn](https://www.mdview.cn/download.html) (Chinese) or
 > [mdview.top](https://www.mdview.top/download) (international).
 
+**Requires** Sublime Text 4 (build 4107+) and a running mdview desktop app.
+No third-party Python dependencies.
+
+## 依赖
+
+- **Sublime Text 4**（build 4107+）。
+- **mdview 桌面版（Pro）**——本插件不自己渲染 Markdown，只把缓冲区推给
+  mdview 的预览窗口。未检测到 mdview 时会引导到官网下载页。
+- 无第三方 Python 依赖，只用 `urllib` / `threading` 标准库。
+
 ## 安装
 
 **方式一（推荐）**：Package Control 命令面板 → `Package Control: Install Package`
@@ -38,7 +48,7 @@ mklink /D "%APPDATA%\Sublime Text\Packages\mdview" "E:\Study\markdown\mdview\sub
 ## 使用
 
 1. 右键编辑区 → **Preview in mdview**（或命令面板 `mdview: Preview Current File`）
-   打开/唤起预览窗口；
+   打开/唤起预览窗口——右键项**只在 Markdown 视图出现**，其它文件类型不占位置；
 2. 正常编辑即可——输入即推（连续输入时每 300ms 出一帧），预览自动更新；
 3. 保存（Ctrl+S）不会触发整页刷新：mdview 识别「推送内容落盘」回声，静默处理。
 
@@ -74,7 +84,8 @@ mklink /D "%APPDATA%\Sublime Text\Packages\mdview" "E:\Study\markdown\mdview\sub
 
 ## 设置
 
-`Preferences: mdview Settings`（命令面板）：
+`Preferences → Package Settings → mdview → Settings`，或命令面板
+`Preferences: mdview Settings`（左右分屏：左＝默认值只读，右＝用户覆盖）：
 
 | 键 | 默认 | 说明 |
 |---|---|---|

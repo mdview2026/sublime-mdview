@@ -682,6 +682,16 @@ class MdviewPreviewCommand(sublime_plugin.WindowCommand):
         view = self.window.active_view()
         return bool(view) and _is_markdown(view)
 
+    def is_visible(self):
+        """右键菜单只对 Markdown 视图出现。
+
+        Package Control 收录要求 context menu 条目必须带条件（右键菜单位有限）：
+        is_enabled 只把条目变灰、仍占一席，故这里用 is_visible 让非 Markdown
+        视图彻底看不到「Preview in mdview」。
+        """
+        view = self.window.active_view()
+        return bool(view) and _is_markdown(view)
+
     def run(self):
         view = self.window.active_view()
         file_path = view.file_name()

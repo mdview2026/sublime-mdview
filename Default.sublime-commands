@@ -2,5 +2,13 @@
     {
         "caption": "mdview: Preview Current File",
         "command": "mdview_preview"
+    },
+    {
+        "caption": "Preferences: mdview Settings",
+        "command": "edit_settings",
+        "args": {
+            "base_file": "${packages}/mdview/mdview.sublime-settings",
+            "default": "// mdview 设置：在此覆盖 mdview.sublime-settings 的默认值\n// 各项含义见 Preferences: mdview Settings 左栏注释与包内 README.md\n{\n}\n"
+        }
     }
 ]
