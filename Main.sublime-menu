@@ -17,7 +17,7 @@
                                 "command": "edit_settings",
                                 "args": {
                                     "base_file": "${packages}/mdview/mdview.sublime-settings",
-                                    "default": "// mdview 设置：在此覆盖 mdview.sublime-settings 的默认值\n// 各项含义见 Preferences: mdview Settings 左栏注释与包内 README.md\n{\n}\n"
+                                    "default": "// mdview settings: override the defaults from mdview.sublime-settings here.\n// See the comments in the left pane and README.md for what each key does.\n// 在此覆盖 mdview.sublime-settings 的默认值；各项含义见左栏注释与包内 README.md\n{\n}\n"
                                 }
                             }
                         ]

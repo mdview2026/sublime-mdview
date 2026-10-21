@@ -69,6 +69,23 @@ def _settings():
     return sublime.load_settings('mdview.sublime-settings')
 
 
+def _hidden_console_kwargs():
+    """Windows 上 subprocess 不给 startupinfo 时，控制台子进程会闪现黑框；
+    Package Control 收录检查也硬性要求。GUI 程序（mdview.exe）加
+    CREATE_NO_WINDOW 无副作用。仅 Windows 返回 kwargs，其余平台为空 dict
+    （startupinfo/creationflags 在 POSIX 上会抛 ValueError）。
+    CREATE_NO_WINDOW 常量为 Py3.7+，ST3 的 3.3 没有，用字面量兜底。"""
+    if os.name != 'nt':
+        return {}
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 0  # SW_HIDE
+    return {
+        'startupinfo': si,
+        'creationflags': getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000),
+    }
+
+
 def _dbg(msg):
     """调试日志（settings 里 \"debug_log\": true 才写）：<live 目录>/plugin-debug.log。"""
     try:
@@ -502,7 +519,9 @@ def push_view(view):
     if _last_sent.get(view.id()) == content:
         return
     if len(content.encode('utf-8')) > MAX_PUSH_BYTES:
-        _status_once('too-large', 'mdview: 文件过大，实时预览推送已跳过')
+        _status_once('too-large',
+                     'mdview: file too large, live push skipped '
+                     '/ 文件过大，实时预览推送已跳过')
         return
     entry = _find_session(file_path)
     if not entry:
@@ -520,7 +539,9 @@ def push_view(view):
         _dbg('push http-error %d' % e.code)
         if e.code == 404:
             # 社区版无此端点：长时间负缓存，本次会话不再打扰
-            _status_once('404', 'mdview: 实时预览推送需要 Pro 版本')
+            _status_once('404',
+                         'mdview: live preview push requires the Pro edition '
+                         '/ 实时预览推送需要 Pro 版本')
             _negative[_norm(file_path)] = time.time() + 3600
             _session.pop(_norm(file_path), None)
         elif e.code == 409:
@@ -701,9 +722,10 @@ class MdviewPreviewCommand(sublime_plugin.WindowCommand):
             _offer_install()
             return
         try:
-            subprocess.Popen([exe, file_path])
+            subprocess.Popen([exe, file_path], **_hidden_console_kwargs())
         except OSError as e:
-            sublime.error_message('启动 mdview 失败：{0}'.format(e))
+            sublime.error_message(
+                'Failed to launch mdview: {0}\n启动 mdview 失败'.format(e))
 
 
 # —— 需求 333：未装 mdview 时的官网安装引导（Sublime 无 locale API，通道按 OS 界面语言） ——
@@ -719,7 +741,7 @@ def _lang_zh():
         if sys.platform == 'darwin':
             out = subprocess.check_output(
                 ['defaults', 'read', '-g', 'AppleLocale'],
-                stderr=subprocess.STDOUT)
+                stderr=subprocess.STDOUT, **_hidden_console_kwargs())
             return out.strip().lower().startswith(b'zh')
         lang = os.environ.get('LANG', '') or os.environ.get('LC_ALL', '')
         if lang:
@@ -748,6 +770,8 @@ def _offer_install():
     ch = _channel()
     tag = '国内版' if ch == 'cn' else '国际版'
     if sublime.yes_no_dialog(
+            'mdview live preview requires the mdview desktop app (Pro). '
+            'Download and install it from the official site now?\n'
             '本插件依赖 mdview 进行实时预览，需要从 mdview 官网下载安装 mdview'
             '（%s），是否继续？' % tag):
         webbrowser.open(DOWNLOAD_PAGE[ch])

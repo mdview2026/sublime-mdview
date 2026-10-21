@@ -1,10 +1,3 @@
-# mdview Sublime Text 插件
-
-在 Sublime Text 中编辑 Markdown，mdview 预览窗口**边输入边无感刷新**——
-无需保存文件，效果与 mdview 内置 F3 分屏编辑一致（行级 diff + 原位换块，不整页刷新）。
-
-> 实时推送端点为 mdview **Pro** 功能（社区版返回 404，插件静默待机）。
-
 # mdview live preview for Sublime Text
 
 Edit Markdown in Sublime Text and see it render in the **mdview** preview window
@@ -14,11 +7,117 @@ reloads. Cursor, click and selection are synced both ways.
 
 > Live-push endpoints are a mdview **Pro** feature (the free/community build
 > returns 404 and the plugin stays idle). Get mdview from
-> [mdview.cn](https://www.mdview.cn/download.html) (Chinese) or
-> [mdview.top](https://www.mdview.top/download) (international).
+> [mdview.top](https://www.mdview.top/download) (international) or
+> [mdview.cn](https://www.mdview.cn/download.html) (Chinese).
 
 **Requires** Sublime Text 4 (build 4107+) and a running mdview desktop app.
 No third-party Python dependencies.
+
+## Requirements
+
+- **Sublime Text 4** (build 4107+).
+- **mdview desktop app (Pro)** — this plugin renders nothing locally; it only
+  pushes the buffer to mdview's preview window. If mdview is not detected, the
+  plugin points you to the official download page.
+- No third-party Python dependencies; only the `urllib` / `threading` standard
+  libraries are used.
+
+## Installation
+
+**Option 1 (recommended)**: Package Control command palette →
+`Package Control: Install Package` → search for `mdview`.
+
+**Option 2 (manual)**: copy (or symlink) this whole directory into Sublime's
+Packages directory, named `mdview`:
+
+- Windows: `%APPDATA%\Sublime Text\Packages\mdview\`
+- macOS: `~/Library/Application Support/Sublime Text/Packages/mdview/`
+
+Restart Sublime (or run `sublime_plugin.reload_plugin`) to activate.
+
+## Usage
+
+1. Right-click the editing area → **Preview in mdview** (or Command Palette
+   `mdview: Preview Current File`) to open/focus the preview window — the
+   context-menu entry **only appears in Markdown views** and stays out of the
+   way for other file types;
+2. Just type — edits are pushed as you go (one frame every 300 ms during
+   continuous typing) and the preview updates automatically;
+3. Saving (Ctrl+S) does not trigger a full reload: mdview recognizes the
+   pushed-content echo and handles it silently.
+
+### mdview not installed?
+
+If mdview is not detected when you run the preview command, the plugin asks
+whether to open the official download page. Install the **Pro** edition (live
+push is a Pro feature), then run the preview command again.
+
+The download page is routed by channel: Chinese OS UI language → CN build
+(mdview.cn), otherwise → international build (mdview.top). The two builds have
+fully independent config/payment/update channels; if the routing guesses wrong,
+override it with the `channel` setting.
+
+### Position sync (two-way)
+
+- Move the Sublime cursor (after a 150 ms dwell) → the preview scrolls to the
+  matching block;
+- Click a block in the preview → the Sublime cursor jumps to the matching
+  source line;
+- Drag-select text in the preview → Sublime selects the matching source
+  (character-precise, falling back to whole lines when no exact match). On
+  landing, the Sublime viewport centers with a 1.5 s orange line flash — in an
+  unfocused window the selection highlight itself is very dim, so the jump and
+  flash are the main "synced" feedback; no need to click into Sublime to
+  confirm (clicking would collapse the selection).
+
+Disable with `sync_cursor` in the settings.
+
+## How it works
+
+- Each mdview preview instance registers `{pid, port, token, md_file}` at
+  `%LOCALAPPDATA%\mdview\live\<port>.json`
+  (macOS: `~/.cache/mdview/live/`) on startup;
+- The plugin matches an instance by the current file path, verifies it with
+  `GET /_live/ping`, then pushes the full buffer via `POST /_live/push` with
+  the `x-mdview-token` header; mdview renders and broadcasts an SSE
+  `live-push` event, and its front end reuses the F3 partial-refresh pipeline
+  for flicker-free updates;
+- When the view is closed, the plugin calls `/_live/detach` to unlink.
+
+## Settings
+
+`Preferences → Package Settings → mdview → Settings`, or Command Palette
+`Preferences: mdview Settings` (split view: left = read-only defaults, right =
+your overrides):
+
+| Key | Default | Description |
+|---|---|---|
+| `mdview_path` | `""` | Path to the mdview executable; empty = auto-detect (on Windows: .md file association first, then registry InstallDir, common install dirs and PATH) |
+| `debounce_ms` | `300` | Push throttle interval in ms (frame interval during continuous typing) |
+| `enabled` | `true` | Master switch for live push |
+| `sync_cursor` | `true` | Master switch for cursor/click/selection position sync |
+| `channel` | `"auto"` | mdview download channel: `auto` = Chinese OS UI language → CN build, otherwise → international build; force with `cn` / `intl` |
+| `debug_log` | `false` | Troubleshooting: write detailed push/cursor/selection sync logs to `<live dir>/plugin-debug.log` |
+
+## Known limits
+
+- Single-file push is capped at ~1.8 MB (server request-body limit);
+- Only Markdown views backed by an on-disk file (`view.file_name()` non-empty)
+  are pushed;
+- After the mdview window switches to a different file, pushing stops
+  automatically (server returns 409) and resumes when it switches back;
+- When the same file is previewed by multiple mdview instances, the plugin
+  trusts the one with the highest version (avoids latching onto an old exe
+  without the new endpoints when old/new builds are mixed).
+
+---
+
+# mdview Sublime Text 插件（中文说明）
+
+在 Sublime Text 中编辑 Markdown，mdview 预览窗口**边输入边无感刷新**——
+无需保存文件，效果与 mdview 内置 F3 分屏编辑一致（行级 diff + 原位换块，不整页刷新）。
+
+> 实时推送端点为 mdview **Pro** 功能（社区版返回 404，插件静默待机）。
 
 ## 依赖
 
@@ -32,7 +131,7 @@ No third-party Python dependencies.
 **方式一（推荐）**：Package Control 命令面板 → `Package Control: Install Package`
 → 搜索 `mdview`。
 
-**方式二（手动）**：把整个 `sublime/` 目录复制（或建符号链接）到 Sublime 的
+**方式二（手动）**：把整个目录复制（或建符号链接）到 Sublime 的
 Packages 目录并命名为 `mdview`：
 
 - Windows: `%APPDATA%\Sublime Text\Packages\mdview\`
